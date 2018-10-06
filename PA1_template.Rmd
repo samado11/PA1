@@ -41,7 +41,7 @@ Total_Steps <- MyData[, c(lapply(.SD, sum, na.rm = FALSE)), .SDcols = c("steps")
 head(Total_Steps, 10)
 ```
 
-##plotting
+## plotting
 ```{r}
 ggplot(Total_Steps, aes(x = steps)) +
     geom_histogram(fill = "blue", binwidth = 1000) +

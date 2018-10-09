@@ -1,50 +1,164 @@
 ---
-title: "PA1_template"
-author: "Omar Samado"
-date: "October 6, 2018"
-output: html_document
+title: "Reproducible Research Week 2 Assignment"
+output:
+  html_document:
+    self_contained: no
+    keep_md: true 
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 999)
+```
 
-## Introduction
+## Load the data 
 
-It is now possible to collect a large amount of data about personal movement using activity monitoring devices such as a Fitbit, Nike Fuelband, or Jawbone Up. These type of devices are part of the "quantified self" movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. But these data remain under-utilized both because the raw data are hard to obtain and there is a lack of statistical methods and software for processing and interpreting the data.
 
-This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+```{r readData}
+zipfile_url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
+download.file(zipfile_url, destfile = ".\\zip_file.zip")
+unzip('zip_file.zip')
+file_name <- 'activity.csv'
+data <- read.csv(file_name)
+```
 
-The data for this assignment can be downloaded from the course web site:
 
-    Dataset: Activity monitoring data [52K]
+## Process the data into a format suitable for your analysis
+Create new column with date as a Date object. 
+```{r makeDate}
+data$date_d <- as.Date(as.character(data$date))
+```
 
-The variables included in this dataset are:
 
-    steps: Number of steps taking in a 5-minute interval (missing values are coded as NA\color{red}{\verb|NA|}NA)
-    date: The date on which the measurement was taken in YYYY-MM-DD format
-    interval: Identifier for the 5-minute interval in which measurement was taken
+## mean total number of steps taken per day
 
-The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
-
+```{r stepsByDay}
+steps_Day <- with(data, tapply(steps, date, sum, na.rm = T)) 
+```
+Check that there are 61 rows (days).
 ```{r}
-
-fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
-download.file(fileUrl, destfile = paste0(getwd(), '/repdata%2Fdata%2Factivity.zip'), method = "curl")
-unzip("repdata%2Fdata%2Factivity.zip",exdir = "data")
+nrow(steps_Day) 
 ```
 
-## Reading csv Data into Data.Table & mean total number of steps taken per day.
-
-
-```{r pressure, echo=FALSE}
-MyData <- read.csv(file="activity.csv", header=TRUE, sep=",")
-Total_Steps <- MyData[, c(lapply(.SD, sum, na.rm = FALSE)), .SDcols = c("steps"), by = .(date)] 
-
-head(Total_Steps, 10)
+## Make a histogram of the total number of steps taken each day.
+```{r histogram, fig.width = 10, fig.height=6, fig.path='Figures/'}
+hist(steps_Day, breaks=seq(0,22500, 2500), xaxt = 'n', xlab = "Total Steps Taken", 
+     ylab = "Number of Days", ylim = range(seq(0,20, 5)), main = '', col = 'powderblue')
+axis(side=1, at=seq(0,22500, 2500), labels=seq(0,22500, 2500))
 ```
 
-## plotting
+## Calculate and report the mean and median of the total number of steps taken per day
+```{r MeanMedian}
+mean_steps <- round(mean(steps_byDay_data), digits = 3)
+median_steps <- round(median(steps_byDay_data), digits = 3)
+mean_steps
+median_steps
+```
+
+## calculate the average daily activity pattern  
+
+```{r stepsByInt}
+steps_byInt <- with(data, tapply(steps, interval, mean, na.rm = T)) 
+```
+
+Check that there are 288 rows (1440 minutes in a day, split into 5 minute intervals).
 ```{r}
-ggplot(Total_Steps, aes(x = steps)) +
-    geom_histogram(fill = "blue", binwidth = 1000) +
-    labs(title = "Daily Steps", x = "Steps", y = "Frequency")
+nrow(steps_byInt) 
 ```
 
+Create plot.
+```{r linePlot, fig.path='Figures/'}
+plot(steps_byInt_data, type = 'l', xlab = 'Interval Number', ylab = 'Average Number of Steps Taken')
+```
+
+## Which 5-minute interval, on average across all the days in the dataset?
+```{r maxInt}
+max_int <- match(max(steps_byInt), steps_byInt)
+max_int
+```
+The interval with the maximum number of steps, on average, is interval `r max_int`, which corresponds to minute `r mon_data$interval[104]`.
+
+## Calculate and report the total number of missing values in the dataset 
+```{r missingValues}
+missing <- sum(is.na(data$steps))
+missing
+```
+The total number of missing values is `r missing`.
+
+
+
+## Make the histogram 
+```{r}
+steps_byDay_2 <- with(data_filled, tapply(steps, date, sum)) 
+```
+
+Check that there are 61 rows (days).
+```{r}
+nrow(steps_byDay_2) 
+```
+```{r histogram2, fig.width=10, fig.height=6, fig.path='Figures/'}
+hist(steps_byDay_data2, breaks=seq(0,22500, 2500), xaxt = 'n', xlab = "Total Steps Taken", 
+     ylab = "Number of Days", ylim = range(seq(0, 30, 5)), main = '', col = 'powderblue')
+axis(side=1, at=seq(0,22500, 2500), labels=seq(0,22500, 2500))
+```
+
+## Calculate and report the mean and median total number of steps taken per day
+```{r MeanMedian2}
+mean_steps2 <- round(mean(steps_byDay_2), digits = 3)
+median_steps2 <- round(median(steps_byDay_2), digits = 3)
+mean_steps2
+median_steps2
+```
+The mean total number of steps per day is `r mean_steps2`. The median total number of steps per day is `r median_steps2`.
+
+
+**Are there differences in activity patterns between weekdays and weekends?**  
+**For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.**  
+
+**1. Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.**
+
+```{r createFactor}
+weekend <- c('Saturday','Sunday')
+for(i in 1:nrow(mon_data_filled)){
+    day <- weekdays(data_filled$date_d[i])
+    if(day %in% weekend){
+        data_filled$day_type[i] <- 'weekend'
+    } else {
+        data_filled$day_type[i] <- 'weekday'
+    }
+}
+data_filled$day_type <- as.factor(data_filled$day_type) 
+```
+Check new variable and data.
+```{r checkFactor}
+class(data_filled$day_type)
+str(data_filled)
+```
+
+**2. Make a panel plot containing a time series plot (i.e. type="l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).**  
+
+
+```{r subsetData}
+weekday_data <- subset(mon_data_filled, mon_data_filled$day_type == 'weekday')
+weekday_steps_data <- with(weekday_data, tapply(steps, c(interval), mean, na.rm = T)) 
+
+weekend_data <- subset(mon_data_filled, mon_data_filled$day_type == 'weekend')
+weekend_steps_data <- with(weekend_data, tapply(steps, c(interval), mean, na.rm = T)) 
+```
+
+Check data; nrows should be 288.
+```{r checkData}
+head(weekday_steps_data)
+head(weekend_steps_data)
+nrow(weekday_steps_data)
+nrow(weekend_steps_data)
+```
+
+Create plot.
+```{r panelPlot, fig.path='Figures/'}
+par(mfrow=c(1,2))
+plot(weekday_steps_data, type = 'l', xlab = 'Interval Number', ylab = 'Average Number of Steps Taken', 
+     main = 'Weekdays', ylim = c(0,250))
+plot(weekend_steps_data, type = 'l', xlab = 'Interval Number', ylab = 'Average Number of Steps Taken', 
+     main = 'Weekends',ylim = c(0,250))
+```

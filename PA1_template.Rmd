@@ -1,5 +1,5 @@
 ---
-title: "Reproducible Research Week 2 Assignment"
+title: "proj_1"
 output:
   html_document:
     self_contained: no
@@ -49,8 +49,8 @@ axis(side=1, at=seq(0,22500, 2500), labels=seq(0,22500, 2500))
 
 ## Calculate and report the mean and median of the total number of steps taken per day
 ```{r MeanMedian}
-mean_steps <- round(mean(steps_byDay_data), digits = 3)
-median_steps <- round(median(steps_byDay_data), digits = 3)
+mean_steps <- round(mean(steps_Day), digits = 3)
+median_steps <- round(median(steps_Day), digits = 3)
 mean_steps
 median_steps
 ```
@@ -68,7 +68,7 @@ nrow(steps_byInt)
 
 Create plot.
 ```{r linePlot, fig.path='Figures/'}
-plot(steps_byInt_data, type = 'l', xlab = 'Interval Number', ylab = 'Average Number of Steps Taken')
+plot(steps_byInt, type = 'l', xlab = 'Interval Number', ylab = 'Average Number of Steps Taken')
 ```
 
 ## Which 5-minute interval, on average across all the days in the dataset?
@@ -76,7 +76,7 @@ plot(steps_byInt_data, type = 'l', xlab = 'Interval Number', ylab = 'Average Num
 max_int <- match(max(steps_byInt), steps_byInt)
 max_int
 ```
-The interval with the maximum number of steps, on average, is interval `r max_int`, which corresponds to minute `r mon_data$interval[104]`.
+The interval with the maximum number of steps, on average, is interval `r max_int`, which corresponds to minute `r data$interval[104]`.
 
 ## Calculate and report the total number of missing values in the dataset 
 ```{r missingValues}
@@ -85,6 +85,16 @@ missing
 ```
 The total number of missing values is `r missing`.
 
+```{r}
+data_filled <- data
+for(i in 1:nrow(data_filled)){
+    if(is.na(data_filled$steps[i])){
+        int <- as.character(data_filled$interval[i])
+        num <- steps_byInt[[int]]
+        data_filled$steps[i] <- num
+    }
+}
+```
 
 
 ## Make the histogram 
@@ -97,7 +107,7 @@ Check that there are 61 rows (days).
 nrow(steps_byDay_2) 
 ```
 ```{r histogram2, fig.width=10, fig.height=6, fig.path='Figures/'}
-hist(steps_byDay_data2, breaks=seq(0,22500, 2500), xaxt = 'n', xlab = "Total Steps Taken", 
+hist(steps_byDay_2, breaks=seq(0,22500, 2500), xaxt = 'n', xlab = "Total Steps Taken", 
      ylab = "Number of Days", ylim = range(seq(0, 30, 5)), main = '', col = 'powderblue')
 axis(side=1, at=seq(0,22500, 2500), labels=seq(0,22500, 2500))
 ```
@@ -119,7 +129,7 @@ The mean total number of steps per day is `r mean_steps2`. The median total numb
 
 ```{r createFactor}
 weekend <- c('Saturday','Sunday')
-for(i in 1:nrow(mon_data_filled)){
+for(i in 1:nrow(data_filled)){
     day <- weekdays(data_filled$date_d[i])
     if(day %in% weekend){
         data_filled$day_type[i] <- 'weekend'
@@ -139,10 +149,10 @@ str(data_filled)
 
 
 ```{r subsetData}
-weekday_data <- subset(mon_data_filled, mon_data_filled$day_type == 'weekday')
+weekday_data <- subset(data_filled, data_filled$day_type == 'weekday')
 weekday_steps_data <- with(weekday_data, tapply(steps, c(interval), mean, na.rm = T)) 
 
-weekend_data <- subset(mon_data_filled, mon_data_filled$day_type == 'weekend')
+weekend_data <- subset(data_filled, data_filled$day_type == 'weekend')
 weekend_steps_data <- with(weekend_data, tapply(steps, c(interval), mean, na.rm = T)) 
 ```
 

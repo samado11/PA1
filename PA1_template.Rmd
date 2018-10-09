@@ -15,11 +15,10 @@ options(scipen = 999)
 
 
 ```{r readData}
-zipfile_url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
-download.file(zipfile_url, destfile = ".\\zip_file.zip")
-unzip('zip_file.zip')
-file_name <- 'activity.csv'
-data <- read.csv(file_name)
+url <- 'https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip'
+download.file(url, destfile = ".\\file.zip")
+unzip('file.zip')
+data <- read.csv('activity.csv')
 ```
 
 
